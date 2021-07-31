@@ -26,7 +26,7 @@ int timezone = 3;
 int dst = 0; 
  
 unsigned long previousMillis = 0;
-const long interval = 1000; 
+const long interval = 10; 
 
 #define FIREBASE_HOST "" // 입력 
 #define FIREBASE_AUTH "" // 입력 필요
@@ -39,6 +39,10 @@ int value1;
 int value2;
 int value3;
 int value4;
+int flag1=0;
+int flag2=0;
+int flag3=0;
+int flag4=0;
 
 void handleRoot() {
   //digitalWrite(led, 1);
@@ -161,11 +165,38 @@ void loop(void) {
     int sec = pTimeInfo->tm_sec;
 
     hour = hour + 6;
+    if (hour >= 24) {
+      hour = hour - 24;
+      day += 1;
+    }
 
-    date = String(year)+"-"+String(month)+"-"+String(day);
-    detailTime = String(hour)+":"+String(min)+":"+String(sec);
+    String month_s = String(month);
+    String day_s = String(day);
+    String hour_s = String(hour);
+    String min_s = String(min);
+    String sec_s = String(sec);
 
-    delay(1000);
+    if(month<10){
+      month_s="0"+String(month);
+    }
+    if(day<10){
+      day_s="0"+String(day);
+    }
+    if(hour<10){
+      hour_s="0"+String(hour);
+    }
+    if(min<10){
+      min_s="0"+String(min);
+    }
+    if(sec<10){
+      sec_s="0"+String(sec);
+    }
+
+    
+    date = String(year)+"-"+String(month_s)+"-"+String(day_s);
+    detailTime = String(hour_s)+":"+String(min_s)+":"+String(sec_s);
+
+    delay(10);
   }
   
   if(temp && humi) {  // 온도, 습도 값을 읽어오면
@@ -174,14 +205,14 @@ void loop(void) {
     Serial.print("temperature:");       // ‘시리얼 플로터’ 사용위해 이부분 주석 필요
     Serial.println(temp);                  // 온도값 출력
     
-    Firebase.setFloat(date+"/Home1/humidity", humi);
+    Firebase.setFloat("Home1/" + date + "/humidity", humi);
     if(Firebase.failed()) {
       Serial.print("setting /number failed:");
       Serial.println(Firebase.error());
       return;
     }
 
-    Firebase.setFloat(date+"/Home1/temperature", temp);
+    Firebase.setFloat("Home1/" + date + "/temperature", temp);
     if(Firebase.failed()) {
       Serial.print("setting /number failed:");
       Serial.println(Firebase.error());
@@ -197,62 +228,67 @@ void loop(void) {
   value3 = digitalRead(touchSensor3);   // 터치가 되었는지 안도
   value4 = digitalRead(touchSensor4);   // 터치가 되었는지 안도
     
-  if(value1 == 1){                       // 터치가 되었을 때
+  if(flag1==0 && value1 == 1){                       // 터치가 되었을 때
     Serial.println("터치!");           // 터치가 되었다고 시리얼모니터에 출력
-    Firebase.setInt(date+"/Home1/Bathroom/"+detailTime, 1);
+    Firebase.setInt("Home1/" + date + "/Bathroom/"+detailTime, 1);
     if(Firebase.failed()) {
       Serial.print("setting /number1 failed:");
       Serial.println(Firebase.error());
       return;
     }
+    flag1 = 1;
  
-  }else{
+  }else if(value1!=1){
     Serial.println("nothing1...");      // 터치가 되지 않았다고 시리얼 모니터에 'nothing...' 출력
+    flag1 = 0;
   }
 
 
-  if(value2 == 1){                       // 터치가 되었을 때if(value1 == 1){                       // 터치가 되었을 때
+  if(flag2==0 &&value2 == 1){                       // 터치가 되었을 때if(value1 == 1){                       // 터치가 되었을 때
     Serial.println("터치!");           // 터치가 되었다고 시리얼모니터에 출력
-    Firebase.setInt(date+"/Home1/Bedroom/"+detailTime, 1);
+    Firebase.setInt("Home1/" + date + "/Bedroom/"+detailTime, 1);
     if(Firebase.failed()) {
       Serial.print("setting /number2 failed:");
       Serial.println(Firebase.error());
       return;
     }
- 
-  }else{
+    flag2 = 1;
+  }else if(value2 != 1){
     Serial.println("nothing2...");      // 터치가 되지 않았다고 시리얼 모니터에 'nothing...' 출력
+    flag2 = 0;
   }
 
 
-  if(value3 == 1){                       // 터치가 되었을 때if(value1 == 1){                       // 터치가 되었을 때
+  if(flag3 == 0 && value3 == 1){                       // 터치가 되었을 때if(value1 == 1){                       // 터치가 되었을 때
     Serial.println("터치!");           // 터치가 되었다고 시리얼모니터에 출력
-    Firebase.setInt(date+"/Home1/Frontdoor/"+detailTime, 1);
+    Firebase.setInt("Home1/" + date + "/Frontdoor/"+detailTime, 1);
     if(Firebase.failed()) {
       Serial.print("setting /number3 failed:");
       Serial.println(Firebase.error());
       return;
     }
- 
-  }else{
+    flag3 = 1;
+  }else if(value3 != 1){
     Serial.println("nothing3...");      // 터치가 되지 않았다고 시리얼 모니터에 'nothing...' 출력
+    flag3 = 0;
   }
 
-  if(value4 == 1){                       // 터치가 되었을 때if(value1 == 1){                       // 터치가 되었을 때
+  if(flag4 == 0 && value4 == 1){                       // 터치가 되었을 때if(value1 == 1){                       // 터치가 되었을 때
     Serial.println("터치!");           // 터치가 되었다고 시리얼모니터에 출력
-    Firebase.setInt(date+"/Home1/Refrigerator/"+detailTime, 1);
+    Firebase.setInt("Home1/" + date + "/Refrigerator/"+detailTime, 1);
     if(Firebase.failed()) {
       Serial.print("setting /number4 failed:");
       Serial.println(Firebase.error());
       return;
     }
- 
-  }else{
+    flag4 = 1;
+  }else if(value4 != 1){
     Serial.println("nothing4...");      // 터치가 되지 않았다고 시리얼 모니터에 'nothing...' 출력
+    flag4 = 0;
   }
   
   
-  delay(500);
+  delay(5);
   
   server.handleClient();
   MDNS.update();
