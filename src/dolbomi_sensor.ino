@@ -43,6 +43,8 @@ int flag1=0;
 int flag2=0;
 int flag3=0;
 int flag4=0;
+int gasdata = 0;
+int GasPin = A0;   // 가스센서 입력을 위한 아날로그 핀
 
 void handleRoot() {
   //digitalWrite(led, 1);
@@ -73,7 +75,10 @@ void setup(void) {
   Serial.begin(115200);
   
   dht11.begin();
-  
+
+
+  // 가스 센서
+  pinMode(GasPin ,INPUT);   // 아날로그 핀 A0를 입력모드로 설정  
   pinMode(touchSensor1, INPUT);      // 정전식 터치센서 입력으로 설정
   pinMode(touchSensor2, INPUT);      // 정전식 터치센서 입력으로 설정
   pinMode(touchSensor3, INPUT);      // 정전식 터치센서 입력으로 설정
@@ -136,14 +141,19 @@ void setup(void) {
    Serial.println("");
    
    Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+
+
 }
+
 
 void loop(void) {
   
   temp = dht11.readTemperature();
   humi = dht11.readHumidity();
-  
+  gasdata = analogRead(GasPin);
 
+  delay(1000);
+  
   unsigned long currentMillis = millis();
   String date;
   String detailTime;
@@ -198,7 +208,18 @@ void loop(void) {
 
     delay(10);
   }
+
+ 
+  Serial.println("Gas data : " + gasdata); 
+
+  Firebase.setInt("Home1/" + date + "/gas", gasdata);
   
+    if(Firebase.failed()) {
+      Serial.print("gas / nuagoaifeoijfafioejf :");
+      Serial.println(Firebase.error());
+      return;
+    }
+    
   if(temp && humi) {  // 온도, 습도 값을 읽어오면
     Serial.print("humidity:");          // ‘시리얼 플로터’ 사용위해 이부분 주석 필요
     Serial.println(humi);                  // 습도값 출력
@@ -227,7 +248,9 @@ void loop(void) {
   value2 = digitalRead(touchSensor2);   // 터치가 되었는지 안도
   value3 = digitalRead(touchSensor3);   // 터치가 되었는지 안도
   value4 = digitalRead(touchSensor4);   // 터치가 되었는지 안도
-    
+
+
+ 
   if(flag1==0 && value1 == 1){                       // 터치가 되었을 때
     Serial.println("터치!");           // 터치가 되었다고 시리얼모니터에 출력
     Firebase.setInt("Home1/" + date + "/Bathroom/"+detailTime, 1);
@@ -286,9 +309,10 @@ void loop(void) {
     Serial.println("nothing4...");      // 터치가 되지 않았다고 시리얼 모니터에 'nothing...' 출력
     flag4 = 0;
   }
+
+  delay(1000);  // 1s 대기  
   
-  
-  delay(5);
+  //delay(5);
   
   server.handleClient();
   MDNS.update();
